@@ -13,15 +13,25 @@ var max_player_amount : int = 100
 
 
 func _ready() -> void:
+	# Connect to server signals
+	network.connect("peer_connected", self, "on_peer_connected")
+	network.connect("peer_disconnected", self, "on_peer_disconnected")
+	
 	# If server not created and started, do something
 	if not start_server():
 		return
 	
 	get_tree().set_network_peer(network)
 
-	# Connect to server signals
-	network.connect("peer_connected", self, "on_peer_connected")
-	network.connect("peer_disconnected", self, "on_peer_disconnected")
+
+remotesync func send_message_to_all_peers(message : String) -> void:
+	var requester_peer_id : int = get_tree().get_rpc_sender_id()
+	print("SERVER requester peer id: ", requester_peer_id)
+	message = "[" + str(requester_peer_id) + "] " + message
+	rpc("receive_message", message)
+
+remotesync func receive_message(message: String) -> void:
+	print("[SERVER] Message received: ", message)
 
 
 # ------------------------------ DECLARE FUNCTIONS -----------------------------
